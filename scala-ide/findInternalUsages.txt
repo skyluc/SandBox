@@ -1,0 +1,77 @@
+
+--- for one project
+find . -name '*.scala' | xargs grep 'scalaide.*\.internal' | awk -F ': *import ' '{imp[$2] = imp[$2]$1"\n"} END {for (i in imp) {print ">>>> "i" :\n"imp[i];}}'
+
+
+--- per project
+find . -name '*.scala' | xargs grep 'scalaide.*\.internal' | awk -F ': *import ' 'BEGIN {RS="(\r\n|\n)"} {print $2" "substr($1, 3)}'
+
+--- grouped list, but not correctly ordered
+sort play.internal scalatest.internal search.internal worksheet.internal | awk '{imp[$1] = imp[$1]"    "$2"\n"} END {for (i in imp) {print ">>>> "i" :\n"imp[i];}}'
+
+--- grouped list, with the right order
+cat play.internal scalatest.internal search.internal worksheet.internal | awk '\
+{
+  imp[$1] = imp[$1]"    "$2"\n"
+}
+
+END {
+  k = 1
+  for (i in imp) { 
+    keys[k++] = i
+  }
+
+  isort(keys, k)
+
+  for (i = 1; i <= k ; i++) {
+    print ">>>> "keys[i]" :\n"imp[keys[i]]
+  }
+}
+
+#insertion sort of A[1..n]
+function isort( A, n,    i, j, hold)
+{
+  for( i = 2 ; i <= n ; i++)
+  {
+    hold = A[j = i]
+    while ( A[j-1] > hold )
+    { j-- ; A[j+1] = A[j] }
+    A[j] = hold
+  }
+  # sentinel A[0] = "" will be created if needed
+}
+'
+
+--- grouped list, with the right order, as csv
+cat play.internal scalatest.internal search.internal worksheet.internal | awk '\
+{
+  imp[$1] = imp[$1]"   , "$2"\n"
+}
+
+END {
+  k = 1
+  for (i in imp) { 
+    keys[k++] = i
+  }
+
+  isort(keys, k)
+
+  for (i = 1; i <= k ; i++) {
+    print ">>>> "keys[i]" \n"imp[keys[i]]
+  }
+}
+
+#insertion sort of A[1..n]
+function isort( A, n,    i, j, hold)
+{
+  for( i = 2 ; i <= n ; i++)
+  {
+    hold = A[j = i]
+    while ( A[j-1] > hold )
+    { j-- ; A[j+1] = A[j] }
+    A[j] = hold
+  }
+  # sentinel A[0] = "" will be created if needed
+}
+'
+
